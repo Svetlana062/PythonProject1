@@ -18,7 +18,7 @@ logger.setLevel(logging.DEBUG)
 logger.debug("Debug message")
 
 
-def limit_payment(limit: int, payment: Union[int, float]) -> int:
+def limit_payment(limit: int, payment: Union[int, float]) -> int | float:
     """Округляет сумму операции в соответствии с лимитом."""
     logger.info("Функция начала свою работу.")
 

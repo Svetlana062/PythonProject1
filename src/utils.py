@@ -72,55 +72,64 @@ def card_info(transactions: list[dict]) -> list[dict]:
     Возвращает список словарей с информацией по каждой карте: последние 4 цифры номера карты,
     общая сумма расходов, кешбэк (1 рубль на каждые 100 рублей)."""
     logger.info("Начало работы функции card_info")
-    unique_card_nums = list(set([transaction["Номер карты"] for transaction in transactions]))
+
+    unique_card_nums = list(set(transaction.get("Номер карты") for transaction in transactions))
     expenditure_by_card = defaultdict(int)
 
     for card_num in unique_card_nums:
         logger.info("Распределение данных в зависимости от номеров карт функции card_info")
+
         for transaction in transactions:
-            if transaction["Номер карты"] == card_num:
-                if transaction["Сумма операции"] < 0:
-                    expenditure_by_card[card_num] += transaction["Сумма операции"]
+            if transaction.get("Номер карты") == card_num:
+                # без KeyError, если ключ отсутствует, возвращаем 0
+                sum_operation = transaction.get("Сумма операции", 0)
+                if sum_operation < 0:
+                    expenditure_by_card[card_num] += sum_operation
+
     result_transaction_list = []
 
     for item in expenditure_by_card:
         logger.info("Вывод данных функции card_info")
         result_transaction_list.append(
             {
-                "last_digits": item[1:],
+                "last_digits": item[1:],  # последние 4 цифры
                 "total_spent": round(expenditure_by_card[item], 2),
                 "cashback": abs(round(expenditure_by_card[item] / 100, 2)),
             }
         )
+
     logger.info("Корректный ответ функции card_info")
     return result_transaction_list
 
 
 def top_5_transactions(transactions: list[dict]) -> list[dict]:
-    """Функция возвращает JSON-ответ с данными: Топ-5 транзакций по сумме платежа."""
-    logger.info("Начало работы функции top_5_transactions")
-    sorted_transactions_list = sorted(transactions, key=lambda x: abs(x["Сумма операции"]))
-    list_top = sorted_transactions_list[-5:]
-    results = []
-    for transaction in list_top:
-        logger.info("Присваивание имен к функциям из модуля utils в функцию top_5_transactions")
-        # Извлекаем необходимые данные
-        date = transaction.get("Дата операции")
-        amount = transaction.get("Сумма операции")  # берем абсолютное значение суммы
-        category = transaction.get("Категория")
-        description = transaction.get("Описание")
-        logger.info("Формирование данных функции top_5_transactions")
+    """Функция возвращает топ-5 транзакций по сумме."""
+    try:
+        # Фильтруем транзакции с доступным значением 'Сумма операции'
+        valid_transactions = [transaction for transaction in transactions if "Сумма операции" in transaction]
 
-        results.append(  # Формируем вывод
-            {
-                "date": date,
-                "amount": amount,
-                "category": category,
-                "description": description,
-            }
-        )
-    logger.info("Корректный ответ функции top_5_transactions")
-    return results
+        # Сортируем транзакции по 'Сумма операции'
+        sorted_transactions_list = sorted(valid_transactions, key=lambda x: abs(x["Сумма операции"]), reverse=True)
+
+        # Берем топ-5 транзакций
+        top_5 = sorted_transactions_list[:5]
+
+        # Создаем список для возврата
+        result = []
+        for transaction in top_5:
+            result.append(
+                {
+                    "Дата операции": transaction["Дата операции"],
+                    "Сумма операции": round(transaction["Сумма операции"], 2),  # округляем сумму
+                    "Описание": transaction["Описание"],
+                }
+            )
+
+        return result
+
+    except Exception as e:
+        logger.exception("Ошибка в функции top_5_transactions: %s", e)
+        raise ValueError("При работе функции top_5_transactions произошла ошибка.")
 
 
 def load_user_settings(file_name: str = "user_settings.json") -> Dict[str, Any]:

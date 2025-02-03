@@ -51,7 +51,7 @@ def spending_by_category(transactions: List[Dict[str, Any]], category: str) -> L
     dates = [datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S") for transaction in transactions]
 
     if not dates:
-        logging.warning("No transactions available for filtering.")
+        logging.info("No transactions available for filtering.")
         return []
 
     max_date = max(dates)  # Находим максимальную дату
@@ -62,4 +62,5 @@ def spending_by_category(transactions: List[Dict[str, Any]], category: str) -> L
         if transaction["Категория"] == category
         and datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S") >= start_date
     ]
+    logging.info("Успешное завершение операции")
     return filtered_transactions

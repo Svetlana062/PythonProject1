@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest import mock
 
 import pytest
@@ -9,7 +10,7 @@ from src.utils import (
     greetings,
     load_user_settings,
     read_transactions_from_excel,
-    top_5_transactions,
+    top_5_transactions
 )
 
 
@@ -28,9 +29,9 @@ from src.utils import (
     ],
 )
 def test_greetings(mock_hour, expected_greeting, mocker):
-    """Патчируем datetime для тестирования разных временных интервалов"""
+    """Тестирование разных временных интервалов"""
     mock_datetime = mocker.patch("src.utils.datetime")
-    mock_datetime.now.return_value.hour = mock_hour
+    mock_datetime.now.return_value = datetime(2021, 1, 1, mock_hour)  # Подставляем конкретное время
     # Проверяем, что функция greetings возвращает правильное приветствие
     assert greetings() == expected_greeting
 
@@ -46,7 +47,7 @@ def test_read_transactions_from_excel(mocker):
     assert transactions[0]["Номер карты"] == "****1234"
 
 
-def test_card_info():
+def test_card_info() -> None:
     """Тестирует вывод информации в соответствии с картой"""
     transactions = [{"Номер карты": "*5678", "Сумма операции": -200}]
     result = card_info(transactions)
@@ -56,7 +57,7 @@ def test_card_info():
     assert result[0]["cashback"] == 2.0
 
 
-def test_top_5_transactions():
+def test_top_5_transactions() -> None:
     """Тестирует, выводит ли функция 5 самых крупных транзакций"""
     transactions = [
         {"Дата операции": "2023-01-01", "Сумма операции": -100, "Категория": "Food", "Описание": "Dinner"},
@@ -70,7 +71,7 @@ def test_top_5_transactions():
     assert len(result) == 5
 
 
-def test_load_user_settings(mocker):
+def test_load_user_settings() -> None:
     """Проверяет чтение файла шаблона для курса валют"""
     mock_open = mock.mock_open(read_data='{"user_currencies": ["USD", "EUR"]}')
     with mock.patch("builtins.open", mock_open):

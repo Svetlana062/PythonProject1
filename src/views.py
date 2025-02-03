@@ -2,14 +2,9 @@ import json
 import logging
 import pathlib
 from logging import FileHandler
+from typing import Any, Dict, List
 
-from src.utils import (
-    card_info,
-    get_currency_rate,
-    get_stock_prices,
-    greetings,
-    top_5_transactions,
-)
+from src.utils import card_info, get_currency_rate, get_stock_prices, greetings, top_5_transactions
 
 root_directory = pathlib.Path(__file__).parent.parent.resolve()
 
@@ -26,20 +21,25 @@ logger.setLevel(logging.DEBUG)
 logger.debug("Debug message")
 
 
-def views(transactions_df: list[dict]) -> str:
+def views(transactions_df: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Функция принимает дату (строка) и DataFrame с данными по транзакциям.
     Возвращает ответ с приветствием, информацией по картам,
     топ-5 транзакций стоимость валюты и акций в виде json-строки."""
     try:
         logger.info("Начало работы функции views")
-        transactions = transactions_df  # чтение файла
+        transactions = transactions_df
+        greeting = greetings()
+        cards = card_info(transactions)
+        top_transactions = top_5_transactions(transactions)
+        currency_rates = get_currency_rate()
+        stock_prices = get_stock_prices()
 
         result_dict = {
-            "greeting": greetings(),
-            "cards": card_info(transactions),
-            "top_transactions": top_5_transactions(transactions),
-            "currency_rates": get_currency_rate(),
-            "stock_prices": get_stock_prices(),
+            "greeting": greeting,
+            "cards": cards,
+            "top_transactions": top_transactions,
+            "currency_rates": currency_rates,
+            "stock_prices": stock_prices,
         }
         result_json = json.dumps(result_dict, ensure_ascii=False)
         logger.info("Корректный JSON-ответ функции views")

@@ -3,7 +3,7 @@ import pytest
 from src.services import date_sorting, investment_bank, limit_payment  # Импортируем функции из src
 
 
-def test_limit_payment():
+def test_limit_payment() -> None:
     """Тестирование функции limit_payment."""
     assert limit_payment(50, -120) == -150
     assert limit_payment(50, -75) == -100

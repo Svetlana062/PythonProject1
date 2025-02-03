@@ -1,5 +1,6 @@
 import json
 import os
+from typing import List, Dict
 from unittest import mock
 
 import pytest
@@ -25,19 +26,19 @@ def test_spending_by_category(mock_transactions):
     assert all(tx["Категория"] == "Супермаркеты" for tx in result)
 
 
-def test_spending_by_category_no_transactions(mock_transactions):
+def test_spending_by_category_no_transactions(mock_transactions: List[Dict]) -> None:
     result = spending_by_category(mock_transactions, "Товары")
 
     assert len(result) == 0  # Ожидаем 0 транзакций по несуществующей категории
 
 
-def test_spending_by_category_no_dates():
+def test_spending_by_category_no_dates() -> None:
     result = spending_by_category([], "Супермаркеты")
 
     assert len(result) == 0  # Ожидаем 0 транзакций, так как нет данных
 
 
-def test_report_decorator():
+def test_report_decorator() -> None:
     # Проверяем функцию, которая будет декорироваться
     mock_function = mock.Mock(return_value={"result": "test_data"})
     wrapped_function = report_decorator("data/test_report.json")(mock_function)
