@@ -7,11 +7,11 @@ from src.views import views
 
 class TestViewsFunction(unittest.TestCase):
 
-    @patch("src.utils.greetings")
-    @patch("src.utils.card_info")
-    @patch("src.utils.top_5_transactions")
-    @patch("src.utils.get_currency_rate")
-    @patch("src.utils.get_stock_prices")
+    @patch("src.views.greetings")
+    @patch("src.views.card_info")
+    @patch("src.views.top_5_transactions")
+    @patch("src.views.get_currency_rate")
+    @patch("src.views.get_stock_prices")
     def test_views_success(
         self, mock_get_stock_prices, mock_get_currency_rate, mock_top_5_transactions, mock_card_info, mock_greetings
     ):
@@ -36,12 +36,12 @@ class TestViewsFunction(unittest.TestCase):
         self.assertIn("stock_prices", result)
 
         function_result = json.loads(result)  # Преобразуем результат в словарь
-        self.assertEqual(len(function_result["cards"]), 0)  # Проверяем, что cards не пустые
-        self.assertEqual(mock_greetings.call_count, 0)
-        self.assertEqual(mock_card_info.call_count, 0)
-        self.assertEqual(mock_top_5_transactions.call_count, 0)
-        self.assertEqual(mock_get_currency_rate.call_count, 0)
-        self.assertEqual(mock_get_stock_prices.call_count, 0)
+        self.assertEqual(len(function_result["cards"]), 1)  # Проверяем, что cards не пустые
+        self.assertEqual(mock_greetings.call_count, 1)
+        self.assertEqual(mock_card_info.call_count, 1)
+        self.assertEqual(mock_top_5_transactions.call_count, 1)
+        self.assertEqual(mock_get_currency_rate.call_count, 1)
+        self.assertEqual(mock_get_stock_prices.call_count, 1)
 
     @patch("src.views.greetings")
     @patch("src.views.card_info")
