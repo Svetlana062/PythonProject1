@@ -10,7 +10,7 @@ from src.utils import (
     greetings,
     load_user_settings,
     read_transactions_from_excel,
-    top_5_transactions
+    top_5_transactions,
 )
 
 

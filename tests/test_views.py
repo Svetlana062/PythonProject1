@@ -43,11 +43,11 @@ class TestViewsFunction(unittest.TestCase):
         self.assertEqual(mock_get_currency_rate.call_count, 0)
         self.assertEqual(mock_get_stock_prices.call_count, 0)
 
-    @patch("src.utils.greetings")
-    @patch("src.utils.card_info")
-    @patch("src.utils.top_5_transactions")
-    @patch("src.utils.get_currency_rate")
-    @patch("src.utils.get_stock_prices")
+    @patch("src.views.greetings")
+    @patch("src.views.card_info")
+    @patch("src.views.top_5_transactions")
+    @patch("src.views.get_currency_rate")
+    @patch("src.views.get_stock_prices")
     def test_views_exception(
         self, mock_get_stock_prices, mock_get_currency_rate, mock_top_5_transactions, mock_card_info, mock_greetings
     ):
@@ -63,17 +63,17 @@ class TestViewsFunction(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             views(transactions_df)
 
-        self.assertEqual(str(context.exception), "При работе функции произошла ошибка.")
-
         # Проверка, что greetings была вызвана
-        self.assertEqual(mock_greetings.call_count, 0)
+        self.assertEqual(mock_greetings.call_count, 1)
         # Проверка, что card_info была вызвана
-        self.assertEqual(mock_card_info.call_count, 0)
+        self.assertEqual(mock_card_info.call_count, 1)
         # Проверка, что top_5_transactions была вызвана
-        self.assertEqual(mock_top_5_transactions.call_count, 0)
+        self.assertEqual(mock_top_5_transactions.call_count, 1)
         # Проверка, что get_currency_rate и get_stock_prices не были вызваны
         self.assertEqual(mock_get_currency_rate.call_count, 0)
         self.assertEqual(mock_get_stock_prices.call_count, 0)
+
+        self.assertEqual(str(context.exception), "При работе функции произошла ошибка.")
 
 
 if __name__ == "__main__":

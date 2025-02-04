@@ -21,7 +21,7 @@ logger.setLevel(logging.DEBUG)
 logger.debug("Debug message")
 
 
-def views(transactions_df: List[Dict[str, Any]]) -> Dict[str, Any]:
+def views(transactions_df: List[Dict[str, Any]]) -> Dict[str, Any] | str:
     """Функция принимает дату (строка) и DataFrame с данными по транзакциям.
     Возвращает ответ с приветствием, информацией по картам,
     топ-5 транзакций стоимость валюты и акций в виде json-строки."""

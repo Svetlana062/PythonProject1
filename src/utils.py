@@ -132,7 +132,7 @@ def top_5_transactions(transactions: list[dict]) -> list[dict]:
         raise ValueError("При работе функции top_5_transactions произошла ошибка.")
 
 
-def load_user_settings(file_name: str = "user_settings.json") -> Dict[str, Any]:
+def load_user_settings(file_name: str = "user_settings.json") -> Dict[str, Any] | Any:
     """Загрузка настроек пользователя из JSON файла"""
     try:
         with open(file_name, "r", encoding="utf-8") as f:
