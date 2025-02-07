@@ -6,6 +6,8 @@ import pathlib
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional
 
+import pandas as pd
+
 root_directory = pathlib.Path(__file__).parent.parent.resolve()
 
 # Формируем абсолютный путь к файлу логов
@@ -43,24 +45,40 @@ def report_decorator(filename: Optional[str] = "./data/report.json") -> Callable
     return decorator
 
 
+def load_transactions_from_excel(file_path: str) -> pd.DataFrame:
+    """Загрузка транзакций из Excel файла в DataFrame."""
+    try:
+        df = pd.read_excel(file_path)
+        return df
+    except FileNotFoundError:
+        print(f"Файл не найден: {file_path}")
+        return pd.DataFrame()  # Возвращаем пустой DataFrame в случае ошибки
+    except Exception as e:
+        print(f"Ошибка при загрузке файла: {e}")
+        return pd.DataFrame()
+
+
 @report_decorator()
-def spending_by_category(transactions: List[Dict[str, Any]], category: str) -> List[Dict[str, Any]]:
-    """Возвращает траты по заданной категории за последние три месяца от самой последней даты в данных."""
+def spending_by_category(
+    transactions_df: pd.DataFrame, category: str, reference_date: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """Возвращает траты по заданной категории за последние три месяца от указанной даты."""
 
-    # Получаем список всех дат в транзакциях
-    dates = [datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S") for transaction in transactions]
+    # Если дата не передана, используем текущую дату
+    if reference_date is None:
+        reference_date = datetime.now().strftime("%d.%m.%Y")
 
-    if not dates:
-        logging.info("No transactions available for filtering.")
-        return []
+    # Преобразуем строку с датой в объект datetime
+    reference_date = datetime.strptime(reference_date, "%d.%m.%Y")
+    start_date = reference_date - timedelta(days=90)  # Три месяца до указанной даты
 
-    max_date = max(dates)  # Находим максимальную дату
-    start_date = max_date - timedelta(days=90)  # Три месяца до максимальной даты
-    filtered_transactions = [  # Фильтруем транзакции по категории и времени
-        transaction
-        for transaction in transactions
-        if transaction["Категория"] == category
-        and datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S") >= start_date
+    # Фильтруем DataFrame по категории и дате
+    filtered_transactions = transactions_df[
+        (transactions_df["Категория"] == category) & (pd.to_datetime(transactions_df["Дата операции"]) >= start_date)
     ]
-    logging.info("Успешное завершение операции")
-    return filtered_transactions
+
+    # Преобразуем отфильтрованные DataFrame в список словарей для возврата
+    result = filtered_transactions.to_dict(orient="records")
+
+    logging.info(f"Успешное завершение операции для категории: {category}")
+    return result
