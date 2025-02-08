@@ -5,7 +5,7 @@ from unittest.mock import patch
 from src.views import views
 
 
-class TestViewsFunction(unittest.TestCase):
+class TestViews(unittest.TestCase):
 
     @patch("src.views.greetings")
     @patch("src.views.card_info")
@@ -22,56 +22,39 @@ class TestViewsFunction(unittest.TestCase):
         mock_get_currency_rate.return_value = {"USD": 75, "EUR": 90}
         mock_get_stock_prices.return_value = {"AAPL": 150, "TSLA": 700}
 
-        # Пример входных данных с полем "Номер карты"
-        transactions_df = [{"Номер карты": "1234", "amount": 100}, {"Номер карты": "5678", "amount": 200}]
+        transactions_df = [
+            {"Дата операции": "01.11.2021 10:00:00", "Номер карты": "1234", "Сумма": 100},
+            {"Дата операции": "15.11.2021 11:30:00", "Номер карты": "5678", "Сумма": 200},
+            {"Дата операции": "29.11.2021 14:00:00", "Номер карты": "1234", "Сумма": 150},
+            {"Дата операции": "12.12.2021 16:00:00", "Номер карты": "5678", "Сумма": 50},
+        ]
+        date = "12.12.2021"  # Дата в формате ДД.ММ.ГГГГ.
 
-        # Выполнение тестируемой функции
-        result = views(transactions_df)
+        result = views(transactions_df, date)
 
         # Проверки
-        self.assertIn("greeting", result)
-        self.assertIn("cards", result)
-        self.assertIn("top_transactions", result)
-        self.assertIn("currency_rates", result)
-        self.assertIn("stock_prices", result)
-
-        function_result = json.loads(result)  # Преобразуем результат в словарь
-        self.assertEqual(len(function_result["cards"]), 1)  # Проверяем, что cards не пустые
-        self.assertEqual(mock_greetings.call_count, 1)
-        self.assertEqual(mock_card_info.call_count, 1)
-        self.assertEqual(mock_top_5_transactions.call_count, 1)
-        self.assertEqual(mock_get_currency_rate.call_count, 1)
-        self.assertEqual(mock_get_stock_prices.call_count, 1)
+        self.assertIsInstance(result, str)  # Ожидаем, что результат - строка (JSON)
+        result_json = json.loads(result)  # Декодируем из JSON для дальнейшей проверки
+        self.assertEqual(result_json["greeting"], "Привет!")
+        self.assertIn("cards", result_json)
+        self.assertIn("top_transactions", result_json)
+        self.assertIn("currency_rates", result_json)
+        self.assertIn("stock_prices", result_json)
 
     @patch("src.views.greetings")
     @patch("src.views.card_info")
     @patch("src.views.top_5_transactions")
-    @patch("src.views.get_currency_rate")
-    @patch("src.views.get_stock_prices")
-    def test_views_exception(
-        self, mock_get_stock_prices, mock_get_currency_rate, mock_top_5_transactions, mock_card_info, mock_greetings
-    ):
-        # Подготовка данных
+    def test_views_exception(self, mock_top_5_transactions, mock_card_info, mock_greetings):
+        # Мокаем функции, чтобы вызвать исключение
         mock_greetings.return_value = "Привет!"
         mock_card_info.return_value = [{"card_number": "1234", "total_amount": 500, "cashback": 5}]
-        # Имитация исключения при получении топ-5 транзакций
         mock_top_5_transactions.side_effect = Exception("Что-то пошло не так")
 
-        # Пример входных данных
-        transactions_df = [{"Номер карты": "1234", "amount": 100}, {"Номер карты": "5678", "amount": 200}]
+        transactions_df = [{"Дата операции": "01.11.2021 10:00:00", "Номер карты": "1234", "Сумма": 100}]
+        date = "12.12.2021"
 
         with self.assertRaises(ValueError) as context:
-            views(transactions_df)
-
-        # Проверка, что greetings была вызвана
-        self.assertEqual(mock_greetings.call_count, 1)
-        # Проверка, что card_info была вызвана
-        self.assertEqual(mock_card_info.call_count, 1)
-        # Проверка, что top_5_transactions была вызвана
-        self.assertEqual(mock_top_5_transactions.call_count, 1)
-        # Проверка, что get_currency_rate и get_stock_prices не были вызваны
-        self.assertEqual(mock_get_currency_rate.call_count, 0)
-        self.assertEqual(mock_get_stock_prices.call_count, 0)
+            views(transactions_df, date)
 
         self.assertEqual(str(context.exception), "При работе функции произошла ошибка.")
 

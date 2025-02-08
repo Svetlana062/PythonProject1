@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import pathlib
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
@@ -37,7 +37,6 @@ def report_decorator(filename: Optional[str] = "./data/report.json") -> Callable
             # Записываем результат в файл
             with open(filename, "w", encoding="utf-8") as f:
                 json.dump(result_, f, ensure_ascii=False, indent=4)
-            logging.info(f"Report saved to {filename}")
             return result_
 
         return wrapper
@@ -49,36 +48,31 @@ def load_transactions_from_excel(file_path: str) -> pd.DataFrame:
     """Загрузка транзакций из Excel файла в DataFrame."""
     try:
         df = pd.read_excel(file_path)
+        logger.info("Транзакции успешно загружены, функция load_transactions_from_excel")
+
         return df
     except FileNotFoundError:
-        print(f"Файл не найден: {file_path}")
         return pd.DataFrame()  # Возвращаем пустой DataFrame в случае ошибки
     except Exception as e:
-        print(f"Ошибка при загрузке файла: {e}")
+        print(f"Ошибка при загрузке файла: {e}, функция load_transactions_from_excel")
         return pd.DataFrame()
 
 
 @report_decorator()
-def spending_by_category(
-    transactions_df: pd.DataFrame, category: str, reference_date: Optional[str] = None
-) -> List[Dict[str, Any]]:
-    """Возвращает траты по заданной категории за последние три месяца от указанной даты."""
+def spending_by_category(transactions_df: pd.DataFrame, category: str, date: str) -> List[Dict[str, Any]]:
+    """Возвращает список транзакций по указанной категории за 3 месяца до указанной даты."""
 
-    # Если дата не передана, используем текущую дату
-    if reference_date is None:
-        reference_date = datetime.now().strftime("%d.%m.%Y")
+    end_date = datetime.strptime(date, "%d.%m.%Y")
+    start_date = end_date - pd.DateOffset(months=3)
 
-    # Преобразуем строку с датой в объект datetime
-    reference_date = datetime.strptime(reference_date, "%d.%m.%Y")
-    start_date = reference_date - timedelta(days=90)  # Три месяца до указанной даты
+    transactions_df["Дата платежа"] = pd.to_datetime(transactions_df["Дата платежа"], dayfirst=True)
 
-    # Фильтруем DataFrame по категории и дате
-    filtered_transactions = transactions_df[
-        (transactions_df["Категория"] == category) & (pd.to_datetime(transactions_df["Дата операции"]) >= start_date)
+    filtered_data = transactions_df[
+        (transactions_df["Категория"] == category)
+        & (transactions_df["Дата платежа"] >= start_date)
+        & (transactions_df["Дата платежа"] <= end_date)
     ]
 
-    # Преобразуем отфильтрованные DataFrame в список словарей для возврата
-    result = filtered_transactions.to_dict(orient="records")
-
-    logging.info(f"Успешное завершение операции для категории: {category}")
-    return result
+    # Преобразуем все значения в строки
+    transaction_list = filtered_data.astype(str).to_dict(orient="records")
+    return transaction_list

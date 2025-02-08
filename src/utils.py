@@ -68,7 +68,7 @@ def read_transactions_from_excel(filename: str) -> list[dict]:
 
 
 def card_info(transactions: list[dict]) -> list[dict]:
-    """Функция принимает список транзакций(словарей).
+    """Функция принимает список транзакций (словарей).
     Возвращает список словарей с информацией по каждой карте: последние 4 цифры номера карты,
     общая сумма расходов, кешбэк (1 рубль на каждые 100 рублей)."""
     logger.info("Начало работы функции card_info")
@@ -81,7 +81,7 @@ def card_info(transactions: list[dict]) -> list[dict]:
 
         for transaction in transactions:
             if transaction.get("Номер карты") == card_num:
-                # без KeyError, если ключ отсутствует, возвращаем 0
+                # Работаем только с расходами
                 sum_operation = transaction.get("Сумма операции", 0)
                 if sum_operation < 0:
                     expenditure_by_card[card_num] += sum_operation
@@ -125,10 +125,11 @@ def top_5_transactions(transactions: list[dict]) -> list[dict]:
                 }
             )
 
+        logger.info("Корректный ответ функции top_5_transactions")
         return result
 
-    except Exception as e:
-        logger.exception("Ошибка в функции top_5_transactions: %s", e)
+    except Exception:
+        logger.exception("Ошибка в функции top_5_transactions")
         raise ValueError("При работе функции top_5_transactions произошла ошибка.")
 
 
